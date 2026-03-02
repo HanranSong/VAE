@@ -1,4 +1,3 @@
-from __future__ import print_function
 import argparse
 import torch
 import torch.utils.data
@@ -8,17 +7,12 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 
 
-parser = argparse.ArgumentParser(description='VAE MNIST Example')
-parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                    help='input batch size for training (default: 128)')
-parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                    help='number of epochs to train (default: 10)')
-parser.add_argument('--no-accel', action='store_true', 
-                    help='disables accelerator')
-parser.add_argument('--seed', type=int, default=1, metavar='S',
-                    help='random seed (default: 1)')
-parser.add_argument('--log-interval', type=int, default=10, metavar='N',
-                    help='how many batches to wait before logging training status')
+parser = argparse.ArgumentParser()
+parser.add_argument('--batch-size', type=int, default=128)
+parser.add_argument('--epochs', type=int, default=10)
+parser.add_argument('--no-accel', action='store_true')
+parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--log-interval', type=int, default=10)
 args = parser.parse_args()
 
 use_accel = not args.no_accel and torch.accelerator.is_available()
@@ -35,11 +29,11 @@ print(f"Using device: {device}")
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if use_accel else {}
 train_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=True, download=True,
+    datasets.FashionMNIST('../data', train=True, download=True,
                    transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
+    datasets.FashionMNIST('../data', train=False, transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=False, **kwargs)
 
 
