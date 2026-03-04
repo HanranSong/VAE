@@ -50,7 +50,7 @@ def main():
     with torch.no_grad():
         for data, labels in test_loader:
             data = data.to(device)
-            mu, logvar = model.encode(data.view(-1, 784))
+            mu, logvar = model.encode(data)
             z = model.reparameterize(mu, logvar)
             
             all_z.append(z.cpu())

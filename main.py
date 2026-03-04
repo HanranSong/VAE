@@ -16,7 +16,7 @@ from models.priors import StandardGaussianPrior
 from utils.losses import loss_function
 
 
-def train(model, optimizer, train_loader, device, prior):
+def train(model, optimizer, train_loader, device, prior, beta):
     model.train()
     train_loss, train_bce, train_kld = 0, 0, 0
     
@@ -25,7 +25,7 @@ def train(model, optimizer, train_loader, device, prior):
         optimizer.zero_grad()
         
         recon_batch, mu, logvar, z = model(data)
-        loss, bce, kld = loss_function(recon_batch, data, mu, logvar, z, prior)
+        loss, bce, kld = loss_function(recon_batch, data, mu, logvar, z, prior, beta)
         
         loss.backward()
         optimizer.step()
@@ -38,7 +38,7 @@ def train(model, optimizer, train_loader, device, prior):
     return train_loss / dataset_size, train_bce / dataset_size, train_kld / dataset_size
 
 
-def test(epoch, model, test_loader, device, prior, img_dir, log_interval):
+def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
     model.eval()
     test_loss, test_bce, test_kld = 0, 0, 0
     
@@ -47,7 +47,7 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval):
             data = data.to(device)
             recon_batch, mu, logvar, z = model(data)
             
-            loss, bce, kld = loss_function(recon_batch, data, mu, logvar, z, prior)
+            loss, bce, kld = loss_function(recon_batch, data, mu, logvar, z, prior, beta)
             test_loss += loss.item()
             test_bce += bce.item()
             test_kld += kld.item()
@@ -68,6 +68,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--latent-dim", type=int, default=20)
+    parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--no-accel", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--log-interval", type=int, default=10)
@@ -119,8 +120,8 @@ def main():
     # ---------- Training loop ----------
     pbar = tqdm(range(1, args.epochs + 1))
     for epoch in pbar:
-        train_loss, train_bce, train_kld = train(model, optimizer, train_loader, device, prior)
-        test_loss, test_bce, test_kld = test(epoch, model, test_loader, device, prior, img_dir, args.log_interval)
+        train_loss, train_bce, train_kld = train(model, optimizer, train_loader, device, prior, args.beta)
+        test_loss, test_bce, test_kld = test(epoch, model, test_loader, device, prior, img_dir, args.log_interval, args.beta)
 
         # Save log
         with open(log_path, "a", newline="") as f:
