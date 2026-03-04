@@ -86,8 +86,9 @@ def main():
     print(f"Directory created at: {out_dir}")
 
     # Save parameters
+    args_to_save = {"run_name": run_name, **vars(args)}
     with open(os.path.join(out_dir, "args.json"), "w") as f:
-        json.dump(vars(args), f, indent=4)
+        json.dump(args_to_save, f, indent=4)
 
     # Initialize log file
     log_path = os.path.join(out_dir, "log.csv")

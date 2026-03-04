@@ -9,6 +9,7 @@ from sklearn.manifold import TSNE
 from torchvision import datasets, transforms
 
 from models.vae import VAE
+from utils.metrics import compute_latent_clustering_score
 
 
 def main():
@@ -59,8 +60,15 @@ def main():
     labels_tensor = torch.cat(all_labels)  # [N]
     
     print(f"Total samples: {z_tensor.shape[0]}")
-    print("Running t-SNE...")
+    print("Computing Silhouette Score...")
+    sil_score = compute_latent_clustering_score(z_tensor, labels_tensor)
+    print(f"Silhouette Score: {sil_score:.4f}")
     
+    metrics_path = os.path.join(run_dir, "metrics.txt")
+    with open(metrics_path, "w") as f:
+        f.write(f"Silhouette Score: {sil_score:.4f}\n")
+    
+    print("Running t-SNE...")
     tsne = TSNE(random_state=run_args["seed"])
     z_2d = tsne.fit_transform(z_tensor.numpy())
 
