@@ -9,6 +9,7 @@ from torchvision import datasets, transforms
 from models.vae import VAE
 from models.priors import build_prior
 from utils.metrics import estimate_dataset_log_likelihood_is
+from utils.seed import set_all_seeds
 
 
 def main():
@@ -25,6 +26,8 @@ def main():
     args_file = os.path.join(run_dir, "args.json")
     with open(args_file, "r") as f:
         run_args = json.load(f)
+    
+    set_all_seeds(run_args["seed"])
 
     use_accel = torch.accelerator.is_available()
     device = torch.accelerator.current_accelerator() if use_accel else torch.device("cpu")

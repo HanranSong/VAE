@@ -10,6 +10,7 @@ from torchvision import datasets, transforms
 
 from models.vae import VAE
 from utils.metrics import compute_latent_clustering_score
+from utils.seed import set_all_seeds
 
 
 def main():
@@ -26,6 +27,8 @@ def main():
     args_file = os.path.join(run_dir, "args.json")
     with open(args_file, "r") as f:
         run_args = json.load(f)
+
+    set_all_seeds(run_args["seed"])
     
     device = torch.accelerator.current_accelerator() if torch.accelerator.is_available() else torch.device("cpu")
 

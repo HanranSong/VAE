@@ -14,6 +14,7 @@ from tqdm import tqdm
 from models.vae import VAE
 from models.priors import StandardGaussianPrior
 from utils.losses import loss_function
+from utils.seed import set_all_seeds
 
 
 def train(model, optimizer, train_loader, device, prior, beta):
@@ -98,18 +99,23 @@ def main():
         writer.writerow(["epoch", "train_loss", "train_bce", "train_kld", "test_loss", "test_bce", "test_kld"])
 
     # ---------- Device & data ----------
-    torch.manual_seed(args.seed)
+    set_all_seeds(args.seed)
+
     use_accel = not args.no_accel and torch.accelerator.is_available()
     device = torch.accelerator.current_accelerator() if use_accel else torch.device("cpu")
     print(f"Using device: {device}")
 
     kwargs = {"num_workers": 1, "pin_memory": True} if use_accel else {}
+
+    g = torch.Generator()
+    g.manual_seed(args.seed)
+
     train_loader = torch.utils.data.DataLoader(
         datasets.FashionMNIST("./data", train=True, download=True, transform=transforms.ToTensor()),
-        batch_size=args.batch_size, shuffle=True, **kwargs)
+        batch_size=args.batch_size, shuffle=True, generator=g, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.FashionMNIST("./data", train=False, transform=transforms.ToTensor()),
-        batch_size=args.batch_size, shuffle=False, **kwargs)
+        batch_size=args.batch_size, shuffle=False, generator=g, **kwargs)
 
     # ---------- Initialize model ----------
     model = VAE(latent_dim=args.latent_dim).to(device)
