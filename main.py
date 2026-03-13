@@ -115,6 +115,8 @@ def main():
     model = VAE(latent_dim=args.latent_dim).to(device)
     if args.prior == "standard_gaussian":
         prior = StandardGaussianPrior().to(device)
+    else:
+        raise ValueError(f"Unknown prior: {args.prior}")
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
     # ---------- Training loop ----------
