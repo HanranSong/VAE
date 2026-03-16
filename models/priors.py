@@ -10,7 +10,7 @@ def gaussian_diag_logprob(z, mu, logvar):
     return -0.5 * (LOG2PI + logvar + (z - mu).pow(2) / logvar.exp())
 
 
-class StandardGaussianPrior(nn.Module):
+class GaussianPrior(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -28,7 +28,7 @@ class StandardGaussianPrior(nn.Module):
 
 
 def build_prior(name):
-    if name == "standard_gaussian":
-        return StandardGaussianPrior()
+    if name == "gaussian":
+        return GaussianPrior()
     else:
         raise ValueError(f"Unknown prior: {name}")

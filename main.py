@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 
 from models.vae import VAE
-from models.priors import StandardGaussianPrior
+from models.priors import GaussianPrior
 from utils.losses import loss_function
 from utils.seed import set_all_seeds
 
@@ -73,7 +73,7 @@ def main():
     parser.add_argument("--no-accel", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--log-interval", type=int, default=10)
-    parser.add_argument("--prior", type=str, default="standard_gaussian")
+    parser.add_argument("--prior", type=str, default="gaussian")
     args = parser.parse_args()
 
     # ---------- Directory setup ----------
@@ -119,8 +119,8 @@ def main():
 
     # ---------- Initialize model ----------
     model = VAE(latent_dim=args.latent_dim).to(device)
-    if args.prior == "standard_gaussian":
-        prior = StandardGaussianPrior().to(device)
+    if args.prior == "gaussian":
+        prior = GaussianPrior().to(device)
     else:
         raise ValueError(f"Unknown prior: {args.prior}")
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
