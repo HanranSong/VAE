@@ -42,7 +42,11 @@ def main():
     fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
     model = VAE(latent_dim=run_args["latent_dim"]).to(device)
-    prior = build_prior(run_args["prior"]).to(device)
+    prior = build_prior(
+        run_args["prior"], 
+        latent_dim=run_args["latent_dim"],
+        num_components=run_args["num_components"]
+    ).to(device)
 
     ckpt_path = os.path.join(run_dir, "checkpoints", "model_final.pt")
     checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)
@@ -69,7 +73,7 @@ def main():
             while num_generated < num_test_samples:
                 current_batch_size = min(512, num_test_samples - num_generated)
                 
-                z = prior.sample(current_batch_size, run_args["latent_dim"], device)
+                z = prior.sample(current_batch_size, device)
                 fake_imgs = model.decode(z) 
                 
                 fake_imgs_rgb = fake_imgs.repeat(1, 3, 1, 1)

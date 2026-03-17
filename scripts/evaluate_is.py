@@ -40,7 +40,11 @@ def main():
         batch_size=512, shuffle=False)
 
     model = VAE(latent_dim=run_args["latent_dim"]).to(device)
-    prior = build_prior(run_args["prior"]).to(device)
+    prior = build_prior(
+        run_args["prior"], 
+        latent_dim=run_args["latent_dim"],
+        num_components=run_args["num_components"]
+    ).to(device)
 
     ckpt_path = os.path.join(run_dir, "checkpoints", "model_final.pt")
     checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)

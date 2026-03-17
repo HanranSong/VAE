@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 
 from models.vae import VAE
-from models.priors import GaussianPrior
+from models.priors import GaussianPrior, MoGPrior
 from utils.losses import loss_function
 from utils.seed import set_all_seeds
 
@@ -31,12 +31,12 @@ def train(model, optimizer, train_loader, device, prior, beta):
         loss.backward()
         optimizer.step()
         
-        train_loss += loss.item()
-        train_bce += bce.item()
-        train_kld += kld.item()
+        train_loss += loss.detach()
+        train_bce += bce.detach()
+        train_kld += kld.detach()
         
     dataset_size = len(train_loader.dataset)
-    return train_loss / dataset_size, train_bce / dataset_size, train_kld / dataset_size
+    return train_loss.item() / dataset_size, train_bce.item() / dataset_size, train_kld.item() / dataset_size
 
 
 def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
@@ -49,9 +49,9 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
             recon_batch, mu, logvar, z = model(data)
             
             loss, bce, kld = loss_function(recon_batch, data, mu, logvar, z, prior, beta)
-            test_loss += loss.item()
-            test_bce += bce.item()
-            test_kld += kld.item()
+            test_loss += loss.detach()
+            test_bce += bce.detach()
+            test_kld += kld.detach()
             
             if i == 0 and epoch % log_interval == 0:
                 n = min(data.size(0), 8)
@@ -60,7 +60,7 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
                            os.path.join(img_dir, f"reconstruction_{epoch}.png"), nrow=n)
                            
     dataset_size = len(test_loader.dataset)        
-    return test_loss / dataset_size, test_bce / dataset_size, test_kld / dataset_size
+    return test_loss.item() / dataset_size, test_bce.item() / dataset_size, test_kld.item() / dataset_size
 
 
 def main():
@@ -74,6 +74,7 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--log-interval", type=int, default=10)
     parser.add_argument("--prior", type=str, default="gaussian")
+    parser.add_argument("--num-components", type=int, default=10)
     args = parser.parse_args()
 
     # ---------- Directory setup ----------
@@ -120,10 +121,14 @@ def main():
     # ---------- Initialize model ----------
     model = VAE(latent_dim=args.latent_dim).to(device)
     if args.prior == "gaussian":
-        prior = GaussianPrior().to(device)
+        prior = GaussianPrior(latent_dim=args.latent_dim).to(device)
+    elif args.prior == "mog":
+        prior = MoGPrior(latent_dim=args.latent_dim, num_components=args.num_components).to(device)
     else:
         raise ValueError(f"Unknown prior: {args.prior}")
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    
+    params_to_optimize = list(model.parameters()) + list(prior.parameters())
+    optimizer = optim.Adam(params_to_optimize, lr=args.learning_rate)
 
     # ---------- Training loop ----------
     pbar = tqdm(range(1, args.epochs + 1))
@@ -139,7 +144,7 @@ def main():
         # Save model and sample images at intervals
         if epoch % args.log_interval == 0:
             with torch.no_grad():
-                sample = prior.sample(64, args.latent_dim, device)
+                sample = prior.sample(64, device)
                 sample = model.decode(sample).cpu()
                 save_image(sample.view(64, 1, 28, 28), os.path.join(img_dir, f"sample_{epoch}.png"))
                 
