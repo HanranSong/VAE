@@ -26,7 +26,7 @@ class GaussianPrior(nn.Module):
 
     def compute_kl(self, mu, logvar, z=None):
         # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)  # [B]
 
 
 class MoGPrior(nn.Module):
@@ -60,14 +60,14 @@ class MoGPrior(nn.Module):
         log_weights = F.log_softmax(self.weight_logits, dim=0)
         log_p_z = torch.logsumexp(log_weights.unsqueeze(0) + log_p_components, dim=1)
         return log_p_z
-
+    
     def compute_kl(self, mu, logvar, z):
-        log_q_z = gaussian_diag_logprob(z, mu, logvar).sum()
-        log_p_z = self.log_prob(z).sum()
-        return log_q_z - log_p_z
+        log_q_z = gaussian_diag_logprob(z, mu, logvar).sum(dim=1)  # [B]
+        log_p_z = self.log_prob(z)  # [B]
+        return log_q_z - log_p_z  # [B]
 
 
-def build_prior(name, latent_dim=20, num_components=10):
+def build_prior(name, latent_dim=64, num_components=10):
     if name == "gaussian":
         return GaussianPrior(latent_dim=latent_dim)
     elif name == "mog":

@@ -66,13 +66,13 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--learning-rate", type=float, default=1e-3)
-    parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--latent-dim", type=int, default=20)
+    parser.add_argument("--latent-dim", type=int, default=64)
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--no-accel", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--log-interval", type=int, default=10)
+    parser.add_argument("--log-interval", type=int, default=50)
     parser.add_argument("--prior", type=str, default="gaussian")
     parser.add_argument("--num-components", type=int, default=10)
     args = parser.parse_args()
@@ -106,17 +106,29 @@ def main():
     device = torch.accelerator.current_accelerator() if use_accel else torch.device("cpu")
     print(f"Using device: {device}")
 
-    kwargs = {"num_workers": 1, "pin_memory": True} if use_accel else {}
-
     g = torch.Generator()
     g.manual_seed(args.seed)
 
+    print("Loading dataset into GPU memory")
+
+    train_dataset = datasets.FashionMNIST("./data", train=True, download=True, transform=transforms.ToTensor())
+    test_dataset = datasets.FashionMNIST("./data", train=False, transform=transforms.ToTensor())
+
+    train_data = train_dataset.data.unsqueeze(1).float().to(device) / 255.0
+    train_targets = train_dataset.targets.to(device)
+
+    test_data = test_dataset.data.unsqueeze(1).float().to(device) / 255.0
+    test_targets = test_dataset.targets.to(device)
+
     train_loader = torch.utils.data.DataLoader(
-        datasets.FashionMNIST("./data", train=True, download=True, transform=transforms.ToTensor()),
-        batch_size=args.batch_size, shuffle=True, generator=g, **kwargs)
+        torch.utils.data.TensorDataset(train_data, train_targets),
+        batch_size=args.batch_size, shuffle=True, generator=g
+    )
+
     test_loader = torch.utils.data.DataLoader(
-        datasets.FashionMNIST("./data", train=False, transform=transforms.ToTensor()),
-        batch_size=args.batch_size, shuffle=False, generator=g, **kwargs)
+        torch.utils.data.TensorDataset(test_data, test_targets),
+        batch_size=args.batch_size, shuffle=False, generator=g
+    )
 
     # ---------- Initialize model ----------
     model = VAE(latent_dim=args.latent_dim).to(device)
