@@ -39,7 +39,7 @@ class VAE(nn.Module):
         h = F.relu(self.fc_dec2(h))
         h = h.view(h.size(0), 64, 7, 7)
         h = F.relu(self.conv_t1(h))
-        return F.sigmoid(self.conv_t2(h))
+        return torch.sigmoid(self.conv_t2(h))
 
     def forward(self, x):
         mu, logvar = self.encode(x)

@@ -44,7 +44,7 @@ def estimate_batch_log_likelihood_is(model, x, prior, num_importance_samples=500
 
         z_flat = z.reshape(k * B, D)
         recon_flat = model.decode(z_flat)  # [k*B, 1, 28, 28]
-        recon = recon_flat.view(k, B, *x.shape[1:])  # [k, B, 1, 28, 28]
+        recon = recon_flat.reshape(k, B, *x.shape[1:])  # [k, B, 1, 28, 28]
 
         x_expand = x.unsqueeze(0).expand(k, -1, -1, -1, -1)  # [k, B, 1, 28, 28]
 

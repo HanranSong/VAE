@@ -22,7 +22,6 @@ def train(model, optimizer, train_loader, device, prior, beta):
     train_loss, train_bce, train_kld = 0, 0, 0
     
     for data, _ in train_loader:
-        data = data.to(device)
         optimizer.zero_grad()
         
         recon_batch, mu, logvar, z = model(data)
@@ -35,8 +34,8 @@ def train(model, optimizer, train_loader, device, prior, beta):
         train_bce += bce.detach()
         train_kld += kld.detach()
         
-    dataset_size = len(train_loader.dataset)
-    return train_loss.item() / dataset_size, train_bce.item() / dataset_size, train_kld.item() / dataset_size
+    num_batches = len(train_loader)
+    return train_loss.item() / num_batches, train_bce.item() / num_batches, train_kld.item() / num_batches
 
 
 def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
@@ -45,7 +44,6 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
     
     with torch.no_grad():
         for i, (data, _) in enumerate(test_loader):
-            data = data.to(device)
             recon_batch, mu, logvar, z = model(data)
             
             loss, bce, kld = loss_function(recon_batch, data, mu, logvar, z, prior, beta)
@@ -59,8 +57,8 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
                 save_image(comparison.cpu(),
                            os.path.join(img_dir, f"reconstruction_{epoch}.png"), nrow=n)
                            
-    dataset_size = len(test_loader.dataset)        
-    return test_loss.item() / dataset_size, test_bce.item() / dataset_size, test_kld.item() / dataset_size
+    num_batches = len(test_loader)
+    return test_loss.item() / num_batches, test_bce.item() / num_batches, test_kld.item() / num_batches
 
 
 def main():
