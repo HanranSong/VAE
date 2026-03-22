@@ -39,7 +39,8 @@ def main():
         batch_size=512, shuffle=False
     )
 
-    fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+    fid_recon = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+    fid_prior = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
     model = VAE(latent_dim=run_args["latent_dim"]).to(device)
     prior = build_prior(
@@ -58,13 +59,20 @@ def main():
     model.eval()
     prior.eval()
 
-    print("Processing real images")
-    for real_imgs, _ in tqdm(test_loader):
-        real_imgs = real_imgs.to(device)
-        real_imgs_rgb = real_imgs.repeat(1, 3, 1, 1)  # [B, 1, 28, 28] -> [B, 3, 28, 28]
-        fid.update(real_imgs_rgb, real=True)
+    print("1/2: Processing real images and reconstructions")
+    with torch.no_grad():
+        for real_imgs, _ in tqdm(test_loader):
+            real_imgs = real_imgs.to(device)
+            real_imgs_rgb = real_imgs.repeat(1, 3, 1, 1)  # [B, 1, 28, 28] -> [B, 3, 28, 28]
+            
+            fid_recon.update(real_imgs_rgb, real=True)
+            fid_prior.update(real_imgs_rgb, real=True)
 
-    print("Generating and processing fake images")
+            recon_imgs, _, _, _ = model(real_imgs)
+            recon_imgs_rgb = recon_imgs.repeat(1, 3, 1, 1)
+            fid_recon.update(recon_imgs_rgb, real=False)
+
+    print("2/2: Generating and processing fake images (Prior Sampling)")
     num_test_samples = len(test_loader.dataset)
     num_generated = 0
     
@@ -77,21 +85,25 @@ def main():
                 fake_imgs = model.decode(z) 
                 
                 fake_imgs_rgb = fake_imgs.repeat(1, 3, 1, 1)
-                fid.update(fake_imgs_rgb, real=False)
+                fid_prior.update(fake_imgs_rgb, real=False)
                 
                 num_generated += current_batch_size
                 pbar.update(current_batch_size)
 
-    print("Computing FID score")
-    fid_score = fid.compute().item()
-    print(f"FID Score for {run_args['prior']} prior: {fid_score:.4f}")
+    print("Computing FID scores")
+    fid_score_recon = fid_recon.compute().item()
+    fid_score_prior = fid_prior.compute().item()
+    
+    print(f"FID Score (Reconstruction): {fid_score_recon:.4f}")
+    print(f"FID Score (Prior Sampling - {run_args['prior']}): {fid_score_prior:.4f}")
 
     fid_save_path = os.path.join(run_dir, "fid_score.json")
     with open(fid_save_path, "w") as f:
         json.dump({
             "run_name": args.run_name,
             "prior": run_args["prior"],
-            "fid_score": fid_score
+            "fid_score_recon": fid_score_recon,
+            "fid_score_prior": fid_score_prior
         }, f, indent=4)
     
     print(f"Saved FID result to: {fid_save_path}")
