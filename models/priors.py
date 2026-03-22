@@ -67,7 +67,7 @@ class MoGPrior(nn.Module):
         return log_q_z - log_p_z  # [B]
 
 
-def build_prior(name, latent_dim=64, num_components=10):
+def build_prior(name, latent_dim=16, num_components=10):
     if name == "gaussian":
         return GaussianPrior(latent_dim=latent_dim)
     elif name == "mog":

@@ -4,7 +4,7 @@ from torch.nn import functional as F
 
 
 class VAE(nn.Module):
-    def __init__(self, latent_dim=64):
+    def __init__(self, latent_dim=16):
         super(VAE, self).__init__()
 
         # Encoder
