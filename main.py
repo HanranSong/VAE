@@ -17,7 +17,7 @@ from utils.losses import loss_function
 from utils.seed import set_all_seeds
 
 
-def train(model, optimizer, train_loader, device, prior, beta):
+def train(model, optimizer, train_loader, prior, beta):
     model.train()
     train_loss, train_bce, train_kld = 0, 0, 0
     
@@ -38,7 +38,7 @@ def train(model, optimizer, train_loader, device, prior, beta):
     return train_loss.item() / num_batches, train_bce.item() / num_batches, train_kld.item() / num_batches
 
 
-def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
+def test(model, test_loader, prior, beta):
     model.eval()
     test_loss, test_bce, test_kld = 0, 0, 0
     
@@ -51,12 +51,6 @@ def test(epoch, model, test_loader, device, prior, img_dir, log_interval, beta):
             test_bce += bce.detach()
             test_kld += kld.detach()
             
-            if i == 0 and epoch % log_interval == 0:
-                n = min(data.size(0), 8)
-                comparison = torch.cat([data[:n], recon_batch.view(-1, 1, 28, 28)[:n]])
-                save_image(comparison.cpu(),
-                           os.path.join(img_dir, f"reconstruction_{epoch}.png"), nrow=n)
-                           
     num_batches = len(test_loader)
     return test_loss.item() / num_batches, test_bce.item() / num_batches, test_kld.item() / num_batches
 
@@ -65,7 +59,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--learning-rate", type=float, default=1e-3)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=500)
     parser.add_argument("--latent-dim", type=int, default=16)
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--no-accel", action="store_true")
@@ -113,6 +107,17 @@ def main():
     train_dataset = datasets.FashionMNIST("./data", train=True, download=True, transform=transforms.ToTensor())
     test_dataset = datasets.FashionMNIST("./data", train=False, transform=transforms.ToTensor())
 
+    fixed_images = []
+    class_found = [False] * 10
+    for img, label in test_dataset:
+        if not class_found[label]:
+            fixed_images.append((img, label))
+            class_found[label] = True
+        if all(class_found):
+            break
+    fixed_images.sort(key=lambda x: x[1])
+    fixed_recon_tensor = torch.stack([x[0] for x in fixed_images]).to(device)  # [10, 1, 28, 28]
+
     train_data = train_dataset.data.unsqueeze(1).float().to(device) / 255.0
     train_targets = train_dataset.targets.to(device)
 
@@ -145,8 +150,8 @@ def main():
     # ---------- Training loop ----------
     pbar = tqdm(range(1, args.epochs + 1))
     for epoch in pbar:
-        train_loss, train_bce, train_kld = train(model, optimizer, train_loader, device, prior, args.beta)
-        test_loss, test_bce, test_kld = test(epoch, model, test_loader, device, prior, img_dir, args.log_interval, args.beta)
+        train_loss, train_bce, train_kld = train(model, optimizer, train_loader, prior, args.beta)
+        test_loss, test_bce, test_kld = test(model, test_loader, prior, args.beta)
 
         # Save log
         with open(log_path, "a", newline="") as f:
@@ -160,6 +165,10 @@ def main():
                 sample = model.decode(sample).cpu()
                 save_image(sample.view(64, 1, 28, 28), os.path.join(img_dir, f"sample_{epoch}.png"))
                 
+                recon, _, _, _ = model(fixed_recon_tensor)
+                comparison = torch.cat([fixed_recon_tensor.cpu(), recon.view(-1, 1, 28, 28).cpu()])
+                save_image(comparison, os.path.join(img_dir, f"reconstruction_{epoch}.png"), nrow=10)
+
             torch.save({
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),

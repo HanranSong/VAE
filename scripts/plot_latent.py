@@ -89,7 +89,7 @@ def main():
     plt.ylabel("t-SNE Dim 2", fontsize=12)
 
     save_path = os.path.join(run_dir, "images", "latent_space_tsne.png")
-    plt.savefig(save_path, bbox_inches="tight", dpi=300) 
+    plt.savefig(save_path) 
     plt.close()
     
     print(f"Plot saved to: {save_path}")
