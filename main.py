@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 
 from models.vae import VAE
-from models.priors import GaussianPrior, MoGPrior
+from models.priors import build_prior
 from utils.losses import loss_function
 from utils.seed import set_all_seeds
 
@@ -70,9 +70,10 @@ def main():
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--no-accel", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--log-interval", type=int, default=50)
+    parser.add_argument("--log-interval", type=int, default=100)
     parser.add_argument("--prior", type=str, default="gaussian")
     parser.add_argument("--num-components", type=int, default=10)
+    parser.add_argument("--df", type=float, default=3.0)
     args = parser.parse_args()
 
     # ---------- Directory setup ----------
@@ -130,12 +131,13 @@ def main():
 
     # ---------- Initialize model ----------
     model = VAE(latent_dim=args.latent_dim).to(device)
-    if args.prior == "gaussian":
-        prior = GaussianPrior(latent_dim=args.latent_dim).to(device)
-    elif args.prior == "mog":
-        prior = MoGPrior(latent_dim=args.latent_dim, num_components=args.num_components).to(device)
-    else:
-        raise ValueError(f"Unknown prior: {args.prior}")
+    
+    prior = build_prior(
+        args.prior,
+        latent_dim=args.latent_dim,
+        num_components=args.num_components,
+        df=args.df
+    ).to(device)
     
     params_to_optimize = list(model.parameters()) + list(prior.parameters())
     optimizer = optim.Adam(params_to_optimize, lr=args.learning_rate)

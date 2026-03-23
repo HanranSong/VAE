@@ -2,6 +2,7 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.distributions import Laplace, StudentT
 
 
 LOG2PI = math.log(2 * math.pi)
@@ -67,11 +68,60 @@ class MoGPrior(nn.Module):
         return log_q_z - log_p_z  # [B]
 
 
-def build_prior(name, latent_dim=16, num_components=10):
+class LaplacePrior(nn.Module):
+    def __init__(self, latent_dim, scale=1.0):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.scale = scale
+
+    def sample(self, batch_size, device):
+        loc_t = torch.tensor(0.0, device=device)
+        scale_t = torch.tensor(self.scale, device=device)
+        m = Laplace(loc_t, scale_t)
+        return m.sample((batch_size, self.latent_dim))
+
+    def log_prob(self, z):
+        loc_t = torch.tensor(0.0, device=z.device)
+        scale_t = torch.tensor(self.scale, device=z.device)
+        m = Laplace(loc_t, scale_t)
+        return m.log_prob(z).sum(dim=1)
+
+    def compute_kl(self, mu, logvar, z):
+        log_q_z = gaussian_diag_logprob(z, mu, logvar).sum(dim=1)  # [B]
+        log_p_z = self.log_prob(z)  # [B]
+        return log_q_z - log_p_z  # [B]
+
+
+class StudentTPrior(nn.Module):
+    def __init__(self, latent_dim, df=3.0):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.df = df  # Degrees of freedom
+
+    def sample(self, batch_size, device):
+        df_t = torch.tensor(self.df, device=device)
+        m = StudentT(df_t)
+        return m.sample((batch_size, self.latent_dim))
+
+    def log_prob(self, z):
+        df_t = torch.tensor(self.df, device=z.device)
+        m = StudentT(df_t)
+        return m.log_prob(z).sum(dim=1)
+
+    def compute_kl(self, mu, logvar, z):
+        log_q_z = gaussian_diag_logprob(z, mu, logvar).sum(dim=1)  # [B]
+        log_p_z = self.log_prob(z)  # [B]
+        return log_q_z - log_p_z  # [B]
+
+
+def build_prior(name, latent_dim=16, num_components=10, df=3.0):
     if name == "gaussian":
         return GaussianPrior(latent_dim=latent_dim)
     elif name == "mog":
         return MoGPrior(latent_dim=latent_dim, num_components=num_components)
+    elif name == "laplace":
+        return LaplacePrior(latent_dim=latent_dim)
+    elif name == "student-t":
+        return StudentTPrior(latent_dim=latent_dim, df=df)
     else:
         raise ValueError(f"Unknown prior: {name}")
-    
