@@ -114,7 +114,55 @@ class StudentTPrior(nn.Module):
         return log_q_z - log_p_z  # [B]
 
 
-def build_prior(name, latent_dim=16, num_components=10, df=3.0):
+class VampPrior(nn.Module):
+    def __init__(self, latent_dim, num_components=10, input_shape=(1, 28, 28)):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.num_components = num_components
+        
+        self.pseudo_inputs = nn.Parameter(torch.randn(num_components, *input_shape) * 0.05)
+        self.model_ref = []
+
+    def set_model(self, model):
+        self.model_ref = [model]
+
+    def log_prob(self, z):
+        if not self.model_ref:
+            raise RuntimeError("Model must be set before computing VampPrior log_prob.")
+        
+        model = self.model_ref[0]
+        
+        mu_k, logvar_k = model.encode(self.pseudo_inputs)  # [K, latent_dim]
+        
+        z_expanded = z.unsqueeze(1)               
+        means_expanded = mu_k.unsqueeze(0)        
+        logvars_expanded = logvar_k.unsqueeze(0)  
+        
+        log_p_components = gaussian_diag_logprob(z_expanded, means_expanded, logvars_expanded).sum(dim=2)
+        log_p_z = torch.logsumexp(log_p_components, dim=1) - math.log(self.num_components)
+        return log_p_z
+
+    def compute_kl(self, mu, logvar, z):
+        log_q_z = gaussian_diag_logprob(z, mu, logvar).sum(dim=1)
+        log_p_z = self.log_prob(z)
+        return log_q_z - log_p_z
+
+    def sample(self, batch_size, device):
+        if not self.model_ref:
+            raise RuntimeError("Model must be set before sampling from VampPrior.")
+        
+        model = self.model_ref[0]
+        
+        indices = torch.randint(0, self.num_components, (batch_size,), device=device)
+        sampled_pseudo_inputs = self.pseudo_inputs[indices]
+        
+        mu_k, logvar_k = model.encode(sampled_pseudo_inputs)
+        std = torch.exp(0.5 * logvar_k)
+        eps = torch.randn(batch_size, self.latent_dim, device=device)
+        return mu_k + eps * std
+
+
+def build_prior(name, latent_dim=16, num_components=10, df=3.0, input_shape=(1, 28, 28)):
     if name == "gaussian":
         return GaussianPrior(latent_dim=latent_dim)
     elif name == "mog":
@@ -123,5 +171,7 @@ def build_prior(name, latent_dim=16, num_components=10, df=3.0):
         return LaplacePrior(latent_dim=latent_dim)
     elif name == "student-t":
         return StudentTPrior(latent_dim=latent_dim, df=df)
+    elif name == "vampprior":
+        return VampPrior(latent_dim=latent_dim, num_components=num_components, input_shape=input_shape)
     else:
         raise ValueError(f"Unknown prior: {name}")

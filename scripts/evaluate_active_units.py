@@ -53,6 +53,9 @@ def main():
     model.load_state_dict(checkpoint["model_state_dict"])
     if "prior_state_dict" in checkpoint:
         prior.load_state_dict(checkpoint["prior_state_dict"])
+    
+    if hasattr(prior, 'set_model'):
+        prior.set_model(model)
 
     model.eval()
     

@@ -143,6 +143,9 @@ def main():
         num_components=args.num_components,
         df=args.df
     ).to(device)
+
+    if hasattr(prior, 'set_model'):
+        prior.set_model(model)
     
     params_to_optimize = list(model.parameters()) + list(prior.parameters())
     optimizer = optim.Adam(params_to_optimize, lr=args.learning_rate)
