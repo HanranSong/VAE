@@ -15,6 +15,7 @@ def main():
         "scripts.evaluate_kid",
         "scripts.model_summary",
         "scripts.plot_curves",
+        "scripts.plot_interpolation_sandal",
         "scripts.plot_interpolation",
         "scripts.plot_latent"
     ]
