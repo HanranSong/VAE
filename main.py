@@ -58,8 +58,8 @@ def test(model, test_loader, prior, beta):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--learning-rate", type=float, default=1e-3)
-    parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--epochs", type=int, default=500)
+    parser.add_argument("--batch-size", type=int, default=1024)
+    parser.add_argument("--epochs", type=int, default=1000)
     parser.add_argument("--latent-dim", type=int, default=16)
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--no-accel", action="store_true")

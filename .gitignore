@@ -209,4 +209,5 @@ __marimo__/
 .DS_Store
 .vscode/
 data/
-results/
+*.pt
+!**/model_final.pt

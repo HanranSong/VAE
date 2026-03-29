@@ -1,0 +1,9 @@
+{
+    "run_name": "gaussian_20260327_143630",
+    "prior": "gaussian",
+    "subset_size": 1000,
+    "kid_recon_mean": 0.02346462942659855,
+    "kid_recon_std": 0.0013890358386561275,
+    "kid_prior_mean": 0.04001807048916817,
+    "kid_prior_std": 0.0019971709698438644
+}

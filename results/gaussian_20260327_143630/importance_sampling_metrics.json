@@ -1,0 +1,8 @@
+{
+    "run_name": "gaussian_20260327_143630",
+    "prior": "gaussian",
+    "latent_dim": 16,
+    "num_importance_samples": 5000,
+    "chunk_size": 100,
+    "average_test_marginal_log_likelihood": -233.122541796875
+}
