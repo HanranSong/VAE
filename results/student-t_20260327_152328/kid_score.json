@@ -1,9 +1,0 @@
-{
-    "run_name": "student-t_20260327_152328",
-    "prior": "student-t",
-    "subset_size": 1000,
-    "kid_recon_mean": 0.02247801050543785,
-    "kid_recon_std": 0.0012025777250528336,
-    "kid_prior_mean": 0.039697322994470596,
-    "kid_prior_std": 0.0018850750057026744
-}

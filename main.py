@@ -64,9 +64,9 @@ def main():
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--no-accel", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--log-interval", type=int, default=100)
+    parser.add_argument("--log-interval", type=int, default=500)
     parser.add_argument("--prior", type=str, default="gaussian")
-    parser.add_argument("--num-components", type=int, default=10)
+    parser.add_argument("--num-components", type=int, default=500)
     parser.add_argument("--df", type=float, default=3.0)
     args = parser.parse_args()
 

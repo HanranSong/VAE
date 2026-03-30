@@ -1,8 +1,0 @@
-{
-    "run_name": "mog_20260327_144538",
-    "prior": "mog",
-    "latent_dim": 16,
-    "num_importance_samples": 5000,
-    "chunk_size": 100,
-    "average_test_marginal_log_likelihood": -231.967431640625
-}

@@ -1,8 +1,0 @@
-{
-    "run_name": "vampprior_20260327_153419",
-    "prior": "vampprior",
-    "latent_dim": 16,
-    "num_importance_samples": 5000,
-    "chunk_size": 100,
-    "average_test_marginal_log_likelihood": -232.1288828125
-}
