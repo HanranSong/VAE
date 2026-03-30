@@ -1,0 +1,9 @@
+{
+    "run_name": "mog_20260330_133555",
+    "prior": "mog",
+    "subset_size": 1000,
+    "kid_recon_mean": 0.021417075768113136,
+    "kid_recon_std": 0.001350784907117486,
+    "kid_prior_mean": 0.020933564752340317,
+    "kid_prior_std": 0.0011595814721658826
+}

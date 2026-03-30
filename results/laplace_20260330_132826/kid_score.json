@@ -1,0 +1,9 @@
+{
+    "run_name": "laplace_20260330_132826",
+    "prior": "laplace",
+    "subset_size": 1000,
+    "kid_recon_mean": 0.022551467642188072,
+    "kid_recon_std": 0.0012001728173345327,
+    "kid_prior_mean": 0.03863512724637985,
+    "kid_prior_std": 0.0019654412753880024
+}

@@ -1,0 +1,6 @@
+{
+    "run_name": "laplace_20260330_132826",
+    "prior": "laplace",
+    "fid_score_recon": 40.13108444213867,
+    "fid_score_prior": 49.453224182128906
+}

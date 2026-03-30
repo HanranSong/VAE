@@ -1,0 +1,14 @@
+{
+    "run_name": "student-t_20260330_134755",
+    "learning_rate": 0.001,
+    "batch_size": 1024,
+    "epochs": 1000,
+    "latent_dim": 16,
+    "beta": 1.0,
+    "no_accel": false,
+    "seed": 42,
+    "log_interval": 500,
+    "prior": "student-t",
+    "num_components": 500,
+    "df": 3.0
+}

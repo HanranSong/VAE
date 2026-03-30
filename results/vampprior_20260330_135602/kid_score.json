@@ -1,0 +1,9 @@
+{
+    "run_name": "vampprior_20260330_135602",
+    "prior": "vampprior",
+    "subset_size": 1000,
+    "kid_recon_mean": 0.01961185596883297,
+    "kid_recon_std": 0.0011011454043909907,
+    "kid_prior_mean": 0.01876584067940712,
+    "kid_prior_std": 0.0009995079599320889
+}

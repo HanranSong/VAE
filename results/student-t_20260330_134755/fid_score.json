@@ -1,0 +1,6 @@
+{
+    "run_name": "student-t_20260330_134755",
+    "prior": "student-t",
+    "fid_score_recon": 41.063743591308594,
+    "fid_score_prior": 50.85337448120117
+}

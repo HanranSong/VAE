@@ -1,0 +1,6 @@
+{
+    "run_name": "gaussian_20260330_132205",
+    "prior": "gaussian",
+    "fid_score_recon": 39.731746673583984,
+    "fid_score_prior": 50.09122085571289
+}

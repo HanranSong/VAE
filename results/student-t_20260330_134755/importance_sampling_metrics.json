@@ -1,0 +1,8 @@
+{
+    "run_name": "student-t_20260330_134755",
+    "prior": "student-t",
+    "latent_dim": 16,
+    "num_importance_samples": 5000,
+    "chunk_size": 100,
+    "average_test_marginal_log_likelihood": -233.734734765625
+}
