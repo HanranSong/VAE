@@ -84,12 +84,9 @@ def main():
     plt.legend(handles=scatter.legend_elements()[0], labels=classes, loc="best")
     
     prior_name = run_args["prior"]
-    plt.title(f"Latent Space t-SNE ({prior_name})", fontsize=16)
-    plt.xlabel("t-SNE Dim 1", fontsize=12)
-    plt.ylabel("t-SNE Dim 2", fontsize=12)
 
     save_path = os.path.join(run_dir, "images", "latent_space_tsne.png")
-    plt.savefig(save_path) 
+    plt.savefig(save_path, bbox_inches='tight') 
     plt.close()
     
     print(f"Plot saved to: {save_path}")
