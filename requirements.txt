@@ -1,0 +1,7 @@
+torch
+torchvision
+tqdm
+torchmetrics[image]
+scikit-learn
+torchinfo
+matplotlib
