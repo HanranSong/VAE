@@ -1,3 +1,6 @@
+> **Archived — moved to [ece-657d](https://github.com/HanranSong/ece-657d/tree/main/final-project).**
+> This repository is retained as a historical archive. Continue development in the course repository; access requires permission to that private repository. Original branches and history are also preserved there under `archive/VAE/...` tags.
+
 # VAE with Multiple Priors
 
 A PyTorch implementation of a Variational Autoencoder (VAE) trained on FashionMNIST with support for multiple latent prior distributions.
